@@ -52,7 +52,9 @@ function nn = nnff(nn, x, y)
     nn.e = y - nn.a{n};
     
     switch nn.output
-        case {'sigm', 'linear'}
+        case 'sigm'
+            nn.L = 1/2 * sum(sum(nn.e .^ 2)) / m;
+        case 'linear'
             nn.L = 1/2 * sum(sum(nn.e .^ 2)) / m; 
         case 'softmax'
             nn.L = -sum(sum(y .* log(nn.a{n}))) / m;
