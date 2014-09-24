@@ -54,7 +54,7 @@ for i = 1 : 10,
     fprintf( "\n\nTraining stage %d. . .\n\n", i );
     nnr.dropoutFraction        = 0.5;
     nnr.momentum               = 0.9;
-    nnr.learning_rate          = 0.5;
+    nnr.learningRate           = 0.5;
     nnr.scaling_learningRate   = 0.8;
 
     % Re-randomise training set and re-train

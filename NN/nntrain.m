@@ -56,22 +56,59 @@ for i = 1 : numepochs
         
         n = n + 1;
     end
-    
-    t = toc;
+
+    if i == 1
+       report_stats = zeros( nn.report_numepochs, 4 ); % time, mb train, train, val
+    end
+    stat_id = mod(i,nn.report_numepochs);
+    do_report = 0;
+    if stat_id == 0
+        stat_id = nn.report_numepochs;
+        do_report = 1;
+    end;
+    report_stats( stat_id, 2 ) = mean(L((n-numbatches):(n-1)));
 
     if opts.validation == 1
         loss = nneval(nn, loss, train_x, train_y, val_x, val_y);
-        str_perf = sprintf('; Full-batch train mse = %f, val mse = %f', loss.train.e(end), loss.val.e(end));
+        report_stats( stat_id, 3 ) = loss.train.e(end);
+        report_stats( stat_id, 4 ) = loss.val.e(end);
+        t = toc;
+        report_stats( stat_id, 1 ) = t;
+        if do_report
+            if stat_id == 1
+                str_perf = sprintf('; Full-batch train mse = %f, val mse = %f', report_stats(1,3), report_stats(1,4));
+            else
+                rs_mu = mean( report_stats );
+                rs_sd = std( report_stats );
+                str_perf = sprintf('; TrainE %f +-%f; ValE %f +-%f (min %f)', rs_mu(3), rs_sd(3), rs_mu(4), rs_sd(4), min( report_stats(:,4) ) );
+            end
+        end
     else
         loss = nneval(nn, loss, train_x, train_y);
-        str_perf = sprintf('; Full-batch train err = %f', loss.train.e(end));
+        report_stats( stat_id, 3 ) = loss.train.e(end);
+        t = toc;
+        report_stats( stat_id, 1 ) = t;
+        if do_report
+            if stat_id == 1
+                str_perf = sprintf('; Full-batch train err = %f', report_stats(1,3));
+            else
+                rs_mu = mean( report_stats );
+                rs_sd = std( report_stats );
+                str_perf = sprintf('; TrainE %f +-%f', rs_mu(3), rs_sd(3) );
+            end
+        end
     end
     if ishandle(fhandle)
         nnupdatefigures(nn, fhandle, loss, opts, i);
     end
-        
-    disp(['epoch ' num2str(i) '/' num2str(opts.numepochs) '. Took ' num2str(t) ' seconds' '. Mini-batch mean squared error on training set is ' num2str(mean(L((n-numbatches):(n-1)))) str_perf]);
+
+    if do_report
+        if stat_id == 1
+            disp(['epoch ' num2str(i) '/' num2str(opts.numepochs) '. Took ' num2str(t) ' seconds' '. Mini-batch train mse ' num2str(mean(L((n-numbatches):(n-1)))) str_perf]);
+        else
+            disp(['epoch ' num2str(i) '/' num2str(opts.numepochs) '. ' sprintf('%0.2f',rs_mu(1)) ' s/epoch' '.  MBTrainE ' sprintf('%0.3f',rs_mu(2)) str_perf]);
+        end
+    end
     nn.learningRate = nn.learningRate * nn.scaling_learningRate;
 end
 end
-

@@ -18,9 +18,11 @@ function nn = nnsetup(architecture)
     nn.testing                          = 0;            %  Internal variable. nntest sets this to one.
     nn.output                           = 'sigm';       %  output unit 'sigm' (=logistic), 'softmax' and 'linear'
 
+    nn.report_numepochs                 = 1;            % Number of epochs between reports.
+
     for i = 2 : nn.n   
-        % weights and weight momentum - NCS: factor 4 removed to match formula on Andrew Ng's ML course
-        nn.W{i - 1} = (rand(nn.size(i), nn.size(i - 1)+1) - 0.5) * 2 * sqrt(6 / (nn.size(i) * nn.size(i - 1)));
+        wsigma = 0.5 * sqrt ( 6 / (nn.size(i) + nn.size(i - 1) ));
+        nn.W{i - 1} = wsigma * randn( nn.size(i), nn.size(i - 1)+1 );
         nn.vW{i - 1} = zeros(size(nn.W{i - 1}));
         
         % average activations (for use with sparsity)
