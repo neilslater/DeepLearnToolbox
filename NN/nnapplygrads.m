@@ -19,4 +19,21 @@ function nn = nnapplygrads(nn)
             
         nn.W{i} = nn.W{i} - dW;
     end
+
+    % Needs verification. Is this a valid max-norm regularisation?
+    % This ref: http://www.cs.toronto.edu/~nitish/msc_thesis.pdf suggest per-neuron max-norm
+    % whilst the setting here is for the whole network.
+    if(nn.globalMaxNorm > 0),
+        sum_sq = 0;
+        for i = 1 : (nn.n - 1),
+            sum_sq += sum( sum(  nn.W{i}(:,2:end) .* nn.W{i}(:,2:end)  ) );
+        end;
+        norm = sqrt( sum_sq );
+        if norm > nn.globalMaxNorm,
+            ratio = nn.globalMaxNorm / norm;
+            for i = 1 : (nn.n - 1),
+                nn.W{i}(:,2:end) = nn.W{i}(:,2:end) * ratio;
+            end;
+        end;
+    end;
 end

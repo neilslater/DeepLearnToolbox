@@ -7,6 +7,8 @@ function nn = nnbp(nn)
     switch nn.output
         case 'sigm'
             d{n} = - nn.e .* (nn.a{n} .* (1 - nn.a{n}));
+        case 'tanh_opt'
+            d{n} = - nn.e .* ( 1.7159 * 2/3 * (1 - 1/(1.7159)^2 * nn.a{n}.^2) );
         case 'softmax'
             d{n} = - nn.e;
         case 'linear'

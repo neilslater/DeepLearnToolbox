@@ -40,6 +40,8 @@ function nn = nnff(nn, x, y)
     switch nn.output 
         case 'sigm'
             nn.a{n} = sigm(nn.a{n - 1} * nn.W{n - 1}');
+        case 'tanh_opt'
+            nn.a{n} = tanh_opt(nn.a{n - 1} * nn.W{n - 1}');
         case 'linear'
             nn.a{n} = nn.a{n - 1} * nn.W{n - 1}';
         case 'softmax'
@@ -53,6 +55,8 @@ function nn = nnff(nn, x, y)
     
     switch nn.output
         case 'sigm'
+            nn.L = 1/2 * sum(sum(nn.e .^ 2)) / m;
+        case 'tanh_opt'
             nn.L = 1/2 * sum(sum(nn.e .^ 2)) / m;
         case 'linear'
             nn.L = 1/2 * sum(sum(nn.e .^ 2)) / m; 
