@@ -20,6 +20,15 @@ function nn = nnapplygrads(nn)
         nn.W{i} = nn.W{i} - dW;
     end
 
+    % max-norm regularisation of neuron input weights
+    if (nn.maxNorm > 0)
+        for i = 1 : (nn.n - 1)
+            norms = sqrt( sum( (nn.W{i}(:,2:end) .* nn.W{i}(:,2:end) ),2) );
+            adjust = norms > nn.maxNorm;
+            nn.W{i}( adjust, 2:end ) = bsxfun( @rdivide, ( nn.W{i}( adjust, 2:end ) * nn.maxNorm ), norms( adjust ) );
+        end
+    end
+
     % Needs verification. Is this a valid max-norm regularisation?
     % This ref: http://www.cs.toronto.edu/~nitish/msc_thesis.pdf suggest per-neuron max-norm
     % whilst the setting here is for the whole network.

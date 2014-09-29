@@ -12,6 +12,7 @@ function nn = nnsetup(architecture)
     nn.scaling_learningRate             = 1;            %  Scaling factor for the learning rate (each epoch)
     nn.weightPenaltyL2                  = 0;            %  L2 regularization
     nn.globalMaxNorm                    = 0;            %  variant of per-neuron max-norm regularisation (not sure if a new thing)
+    nn.maxNorm                          = 0;            %  max-norm regularization (http://www.cs.toronto.edu/~hinton/absps/dropout.pdf)
     nn.nonSparsityPenalty               = 0;            %  Non sparsity penalty
     nn.sparsityTarget                   = 0.05;         %  Sparsity target
     nn.inputZeroMaskedFraction          = 0;            %  Used for Denoising AutoEncoders
