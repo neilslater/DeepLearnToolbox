@@ -7,7 +7,7 @@ function [nn, L]  = nntrain(nn, train_x, train_y, opts, val_x, val_y)
 % squared error for each training minibatch.
 
 assert(isfloat(train_x), 'train_x must be a float');
-assert(nargin == 4 || nargin == 6,'number ofinput arguments must be 4 or 6')
+assert(nargin == 4 || nargin == 6,'number of input arguments must be 4 or 6')
 
 loss.train.e               = [];
 loss.train.e_frac          = [];
@@ -17,6 +17,8 @@ opts.validation = 0;
 if nargin == 6
     opts.validation = 1;
 end
+% Limit attempts to feed-forward giant data sets just to get "super-accurate" error values
+train_loss_size = min( size(train_x,1), 2000 );
 
 fhandle = [];
 if isfield(opts,'plot') && opts.plot == 1
@@ -69,7 +71,7 @@ for i = 1 : numepochs
     report_stats( stat_id, 2 ) = mean(L((n-numbatches):(n-1)));
 
     if opts.validation == 1
-        loss = nneval(nn, loss, train_x, train_y, val_x, val_y);
+        loss = nneval(nn, loss, train_x(1:train_loss_size,:), train_y(1:train_loss_size,:), val_x, val_y);
         report_stats( stat_id, 3 ) = loss.train.e(end);
         report_stats( stat_id, 4 ) = loss.val.e(end);
         t = toc;
@@ -84,7 +86,7 @@ for i = 1 : numepochs
             end
         end
     else
-        loss = nneval(nn, loss, train_x, train_y);
+        loss = nneval(nn, loss, train_x(1:train_loss_size,:), train_y(1:train_loss_size,:));
         report_stats( stat_id, 3 ) = loss.train.e(end);
         t = toc;
         report_stats( stat_id, 1 ) = t;
@@ -109,6 +111,35 @@ for i = 1 : numepochs
             disp(['epoch ' num2str(i) '/' num2str(opts.numepochs) '. ' sprintf('%0.2f',rs_mu(1)) ' s/epoch' '.  MBTrainE ' sprintf('%0.3f',rs_mu(2)) str_perf]);
         end
     end
-    nn.learningRate = nn.learningRate * nn.scaling_learningRate;
+
+    switch nn.epochFunction
+        case 'none'
+            nn.learningRate = nn.learningRate * nn.scaling_learningRate;
+        case 'scale_dropout_01'
+            nn.learningRate = nn.learningRate * nn.scaling_learningRate;
+            nn.dropoutFraction = 0.4 - 0.2 * (i/numepochs);
+        case 'scale_max_norm_01'
+            nn.learningRate = nn.learningRate * nn.scaling_learningRate;
+            nn.dropoutFraction = 0.2 - 0.1 * (i/numepochs);
+            nn.maxNorm = 1.0 - 0.35 * (i/numepochs);
+        case 'scale_max_norm_02'
+            nn.learningRate = nn.learningRate * nn.scaling_learningRate;
+            nn.maxNorm = 0.65 - 0.1 * (i/numepochs);
+        case 'scale_max_norm_03'
+            nn.learningRate = nn.learningRate * nn.scaling_learningRate;
+            nn.maxNorm = 0.55 - 0.05 * (i/numepochs);
+        case 'v19_stage02'
+            nn.dropoutFraction = 0.4 - 0.2 * (i/numepochs);
+        case 'v19_stage03'
+            nn.dropoutFraction = 0.2 - 0.1 * (i/numepochs);
+            nn.maxNorm = 1.0 - 0.35 * (i/numepochs);
+        case 'v19_stage04'
+            nn.maxNorm = 0.65 - 0.1 * (i/numepochs);
+        case 'v19_stage05'
+            nn.maxNorm = 0.55 - 0.05 * (i/numepochs);
+        case 'test'
+            nn.learningRate = nn.learningRate * nn.scaling_learningRate;
+            nn.dropoutFraction = 0.1 + 0.1 * (i/numepochs);
+    end;
 end
 end

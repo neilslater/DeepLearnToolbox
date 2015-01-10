@@ -11,14 +11,14 @@ function nn = nnff(nn, x, y)
 
     %feedforward pass
     for i = 2 : n-1
-        switch nn.activation_function 
+        switch nn.activation_function
             case 'sigm'
                 % Calculate the unit's outputs (including the bias term)
-                nn.a{i} = sigm(nn.a{i - 1} * nn.W{i - 1}');
+                nn.a{i} = sigm(nn.a{i - 1} * nn.W{i - 1}'); %'
             case 'tanh_opt'
-                nn.a{i} = tanh_opt(nn.a{i - 1} * nn.W{i - 1}');
+                nn.a{i} = tanh_opt(nn.a{i - 1} * nn.W{i - 1}'); %'
         end
-        
+
         %dropout
         if(nn.dropoutFraction > 0)
             if(nn.testing)
@@ -39,13 +39,13 @@ function nn = nnff(nn, x, y)
     end
     switch nn.output 
         case 'sigm'
-            nn.a{n} = sigm(nn.a{n - 1} * nn.W{n - 1}');
+            nn.a{n} = sigm(nn.a{n - 1} * nn.W{n - 1}'); %'
         case 'tanh_opt'
-            nn.a{n} = tanh_opt(nn.a{n - 1} * nn.W{n - 1}');
+            nn.a{n} = tanh_opt(nn.a{n - 1} * nn.W{n - 1}'); %'
         case 'linear'
-            nn.a{n} = nn.a{n - 1} * nn.W{n - 1}';
+            nn.a{n} = nn.a{n - 1} * nn.W{n - 1}'; %'
         case 'softmax'
-            nn.a{n} = nn.a{n - 1} * nn.W{n - 1}';
+            nn.a{n} = nn.a{n - 1} * nn.W{n - 1}'; %'
             nn.a{n} = exp(bsxfun(@minus, nn.a{n}, max(nn.a{n},[],2)));
             nn.a{n} = bsxfun(@rdivide, nn.a{n}, sum(nn.a{n}, 2)); 
     end
@@ -55,7 +55,9 @@ function nn = nnff(nn, x, y)
     
     switch nn.output
         case 'sigm'
-            nn.L = 1/2 * sum(sum(nn.e .^ 2)) / m;
+            % TODO: Switch this depending on goals
+            % nn.L = 1/2 * sum(sum(nn.e .^ 2)) / m;
+            nn.L = -sum( sum( y .* log( max( nn.a{n}, 1e-15 ) ) + (1-y) .* log( max( (1 - nn.a{n}), 1e-15 ) ) ) ) / (m * size(nn.a{n},2));
         case 'tanh_opt'
             nn.L = 1/2 * sum(sum(nn.e .^ 2)) / m;
         case 'linear'
